@@ -4,6 +4,8 @@
 PruebaUserRoles/appsettings.json
 PruebaUserRoles/appsettings.Development.json
 
+JSON/
+
 # User-specific files
 *.suo
 *.user

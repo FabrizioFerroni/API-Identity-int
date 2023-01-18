@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using PruebaUserRoles.Models.Role;
-using PruebaUserRoles.Models.User;
+using PruebaUserRoles.Models;
 using System.Configuration;
 
 namespace PruebaUserRoles.Data

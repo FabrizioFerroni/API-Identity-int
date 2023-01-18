@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using PruebaUserRoles.Data;
-using PruebaUserRoles.Models.Role;
-using PruebaUserRoles.Models.User;
+using PruebaUserRoles.Models;
 using System.Configuration;
 using System.Text.Json.Serialization;
 
@@ -18,6 +17,17 @@ var builder = WebApplication.CreateBuilder(args);
     services.AddIdentity<User, Role>()
           .AddEntityFrameworkStores<ApplicationContext>()
           .AddDefaultTokenProviders();
+
+    services.Configure<IdentityOptions>( op =>
+    {
+        op.Password.RequiredLength = 8;
+        op.Password.RequiredUniqueChars = 3;
+        op.Password.RequireNonAlphanumeric = true;
+        op.Password.RequireUppercase= true;
+        op.User.RequireUniqueEmail = true;
+        op.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+        
+    });
 
     services.AddCors();
     services.AddControllers().AddJsonOptions(x =>
