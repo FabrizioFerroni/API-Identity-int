@@ -1,9 +1,12 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PruebaUserRoles.Models;
 
 namespace PruebaUserRoles.Controllers
 {
     [ApiController]
     [Route("[controller]")]
+    //[Authorize]
     public class WeatherForecastController : ControllerBase
     {
         private static readonly string[] Summaries = new[]
@@ -18,6 +21,8 @@ namespace PruebaUserRoles.Controllers
             _logger = logger;
         }
 
+
+
         [HttpGet(Name = "GetWeatherForecast")]
         public IEnumerable<WeatherForecast> Get()
         {
@@ -29,5 +34,7 @@ namespace PruebaUserRoles.Controllers
             })
             .ToArray();
         }
+
+        
     }
 }

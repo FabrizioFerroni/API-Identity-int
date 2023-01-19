@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace PruebaUserRoles.Auth
+namespace PruebaUserRoles.Dto
 {
     public class LoginModel
     {

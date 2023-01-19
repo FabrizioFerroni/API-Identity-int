@@ -1,4 +1,4 @@
-﻿namespace PruebaUserRoles.Auth
+﻿namespace PruebaUserRoles.Dto
 {
     public class UserRoles
     {

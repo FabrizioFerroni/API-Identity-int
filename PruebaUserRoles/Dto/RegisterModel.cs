@@ -1,7 +1,7 @@
 ﻿using PruebaUserRoles.Models;
 using System.ComponentModel.DataAnnotations;
 
-namespace PruebaUserRoles.Auth
+namespace PruebaUserRoles.Dto
 {
     public class RegisterModel
     {

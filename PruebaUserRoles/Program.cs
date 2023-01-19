@@ -1,85 +1,96 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using PruebaUserRoles.Data;
 using PruebaUserRoles.Models;
-using System.Configuration;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
-
 {
+    ConfigurationManager configuration = builder.Configuration;
+
     var services = builder.Services;
     var env = builder.Environment;
+
     // Add services to the container.
 
-    services.AddDbContext<ApplicationContext>(options =>
-                               options.UseSqlServer(builder.Configuration.GetConnectionString("WebApiDatabase")));
-    services.AddIdentity<User, Role>()
-          .AddEntityFrameworkStores<ApplicationContext>()
-          .AddDefaultTokenProviders();
+    // For Entity Framework
+    services.AddDbContext<ApplicationContext>(options => options.UseSqlServer(configuration.GetConnectionString("WebApiDatabase")));
 
-    services.Configure<IdentityOptions>( op =>
+    // For Identity
+    services.AddIdentity<User, Role>()
+        .AddEntityFrameworkStores<ApplicationContext>()
+        .AddDefaultTokenProviders();
+
+    // Adding Authentication
+    services.AddAuthentication(options =>
     {
-        op.Password.RequiredLength = 8;
-        op.Password.RequiredUniqueChars = 3;
-        op.Password.RequireNonAlphanumeric = true;
-        op.Password.RequireUppercase= true;
-        op.User.RequireUniqueEmail = true;
-        op.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
-        
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+
+    // Adding Jwt Bearer
+    .AddJwtBearer(options =>
+    {
+        options.SaveToken = true;
+        options.RequireHttpsMetadata = false;
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {            
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidAudience = configuration["JWT:ValidAudience"],
+            ValidIssuer = configuration["JWT:ValidIssuer"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]))
+        };
     });
 
-    services.AddCors();
+    //services.AddControllers();
     services.AddControllers().AddJsonOptions(x =>
     {
         // serialize enums as strings in api responses (e.g. Role)
         x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        
     });
-    //services.AddControllers();
     // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     services.AddEndpointsApiExplorer();
-    services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+    services.AddSwaggerGen(c =>
+    {
+        c.OperationFilter<SecurityRequirementsOperationFilter>();
 
-    services.AddSwaggerGen();
-
-    // configure strongly typed settings object
-    services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+        c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+        {
+            Description = "Autorizacion Standar, Usar Bearer. Ejemplo \"bearer {token}\"",
+            In = ParameterLocation.Header,
+            Name = "Authorization",
+            Type = SecuritySchemeType.ApiKey,
+            Scheme = "Bearer"
+        });
+    });
 }
 
 var app = builder.Build();
 
-using (var scope = app.Services.CreateScope())
-{
-    var dataContext = scope.ServiceProvider.GetRequiredService<ApplicationContext>();
-    dataContext.Database.Migrate();
-}
-
 // Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
 {
-    if (app.Environment.IsDevelopment())
-    {
-    }
-
-
     app.UseSwagger();
-    app.UseSwaggerUI(x => x.SwaggerEndpoint("/swagger/v1/swagger.json", "API Test identity int"));
-
-
-    app.UseCors(x => x
-      .SetIsOriginAllowed(origin => true)
-      .AllowAnyMethod()
-      .AllowAnyHeader()
-      .AllowCredentials());
-
-    // global error handler
-    app.UseMiddleware<ErrorHandlerMiddleware>();
-
-
-    app.UseHttpsRedirection();
-
-    app.UseAuthentication();
-    app.UseAuthorization();
-
-    app.MapControllers();
+    app.UseSwaggerUI();
 }
+
+app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
 app.Run();

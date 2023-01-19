@@ -5,6 +5,7 @@ PruebaUserRoles/appsettings.json
 PruebaUserRoles/appsettings.Development.json
 
 JSON/
+bkp/
 
 # User-specific files
 *.suo
